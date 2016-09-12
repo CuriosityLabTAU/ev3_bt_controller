@@ -19,26 +19,46 @@ Nsteps = 20
 nn1 = neuronets.NN(n1, p1, m1, eta1, eps1)
 nn1.initialize_weights()
 
-
-
-raw_a = np.random.randint(-100, high = 101)
-print(raw_a)
-
 motors = [
     {
         'port': 1,
         'speed': 10,
         'duration': 1
+    },
+    {
+        'port': 8,
+        'speed': 0,
+        'duration': 1
     }
 ]
-a_t0 = raw_a/motor_max
-
 c = EV3_BT_Controller(motors)
-raw_theta_t0 = c.get_degree_single_motor(motors)
-theta_t0 = rf.map_angle(raw_theta_0)
-c.move_single_motor(motors)
-raw_theta_t1 = c.get_degree_single_motor(motors)
-theta_t1 = rf.map_angle(raw_theta_1)
-x1 = [theta_t0, a_t0]
-d1 = theta_t1
-nn1.learn = (x1, d1, itera1, eps1)
+for x in range(0,10):
+    raw_a = np.random.randint(-100, high = 101)
+    print(raw_a)
+    motors = [
+        {
+            'port': 1,
+            'speed': raw_a,
+            'duration': 1
+        },
+        {
+            'port': 8,
+            'speed': 0,
+            'duration': 1
+        }
+    ]
+
+    print(motors)
+
+    a_t0 = raw_a/motor_max
+    raw_angles = c.get_degrees_two_motors(motors)
+    raw_theta_t0 = raw_angles[0]
+    theta_t0 = rf.map_angle(raw_theta_t0)
+    c.move_two_motors(motors)
+    raw_angles = c.get_degrees_two_motors(motors)
+    raw_theta_t1 = raw_angles[0]
+    theta_t1 = rf.map_angle(raw_theta_t1)
+    x1 = [theta_t0, a_t0]
+    d1 = theta_t1
+    nn1.learnNew = (x1, d1, itera1, eta1)
+
