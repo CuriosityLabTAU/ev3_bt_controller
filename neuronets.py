@@ -80,6 +80,20 @@ class NN:
         plt.plot(ff)
         plt.show()
 
+    def learnNew(self, x, d, eta):
+        bD1 = np.zeros(self.Wa1.shape)
+        bD2 = np.zeros(self.Wa2.shape)
+        t = x.shape[0]
+        xa, s1, za, s2, y = NN.forProp(self, x)
+        D1,D2 = NN.backProp(self, xa, s1, za, s2, y, d)
+        bD1 += D1
+        bD2 += D2
+        J += NN.cost(self, d, y)
+        self.Wa2 -= eta*(bD2/t)
+        self.Wa1 -= eta*(bD1/t)
+
+
+
     def prepIO(self, x):
         t = x.shape[0]
         y2 = np.zeros((t, self.nOutput))
