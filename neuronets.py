@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 
 class NN:
 
-    def __init__(self, nInput, nHidden, nOutput, eta=0.1, eps=0.1):
+    def __init__(self, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning=0.001):
         self.nInput = nInput
         self.nHidden = nHidden
         self.nOutput = nOutput
         self.eta = eta
         self.eps = eps
+        self.pruning = pruning
 
     def sig(z):
         h = np.tanh(z)
@@ -19,11 +20,14 @@ class NN:
         stag = 1-np.multiply(NN.sig(z),NN.sig(z))
         return stag
 
-    def initialize_weights(self):
+    def initialize_weights(self, eps_in=None):
         n = self.nInput
         p = self.nHidden
         m = self.nOutput
-        eps = self.eps
+        if eps_in is not None:
+            eps = eps_in
+        else:
+            eps = self.eps
 
         self.Wa1 = np.random.rand(p,n+1)*2*eps-eps
         self.Wa2 = np.random.rand(m,p+1)*2*eps-eps
@@ -53,45 +57,22 @@ class NN:
         e1 = np.dot(W2.T, d2)
         d1 = e1*sigtag1
         D1 = np.outer(-d1, xa.T)
-        return D1, D2
+        self.Wa2 -= self.eta * D2 + self.pruning * np.sign(self.Wa2)
+        self.Wa1 -= self.eta * D1 + self.pruning * np.sign(self.Wa1)
 
-    def learn(self, x, d, itera, eta):
-        bD1 = np.zeros(self.Wa1.shape)
-        bD2 = np.zeros(self.Wa2.shape)
-        ff = np.zeros((itera, 1))
-        t = x.shape[0]
-
-        k = 0
-        for j in range(1, itera):
-            J = 0
-            for i in range(t):
-                xa, s1, za, s2, y = NN.forProp(self, x[i, :])
-                D1,D2 = NN.backProp(self, xa, s1, za, s2, y, d[i])
-                bD1 += D1
-                bD2 += D2
-                J += NN.cost(self, d[i], y)
-            k += 1
-            ff[k] = J
-            self.Wa2 -= eta*(bD2/t)
-            self.Wa1 -= eta*(bD1/t)
-            bD1 = 0
-            bD2 = 0
-
-        plt.plot(ff)
-        plt.show()
+        return self.cost(d, y)
 
     def learnNew(self, x, d, eta):
         bD1 = np.zeros(self.Wa1.shape)
         bD2 = np.zeros(self.Wa2.shape)
-        t = x.shape[0]
         xa, s1, za, s2, y = NN.forProp(self, x)
         D1,D2 = NN.backProp(self, xa, s1, za, s2, y, d)
         bD1 += D1
         bD2 += D2
-        J += NN.cost(self, d, y)
-        self.Wa2 -= eta*(bD2/t)
-        self.Wa1 -= eta*(bD1/t)
-
+        J = NN.cost(self, d, y)
+        self.Wa2 -= eta*(bD2)
+        self.Wa1 -= eta*(bD1)
+        return J
 
 
     def prepIO(self, x):
