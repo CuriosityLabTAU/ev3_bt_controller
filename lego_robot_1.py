@@ -3,6 +3,7 @@ import neuronets
 from ev3_bt_controller import *
 import robot_fun as rf
 import numpy as np
+import matplotlib.pyplot as plt
 
 n1 = 2
 p1 = 10
@@ -14,7 +15,7 @@ motor_max = 100
 motor_min = -100
 sensor_max = 360
 sensor_min = 1
-Nsteps = 20
+Nsteps = 100
 
 nn1 = neuronets.NN(n1, p1, m1, eta1, eps1)
 nn1.initialize_weights()
@@ -32,7 +33,11 @@ motors = [
     }
 ]
 c = EV3_BT_Controller(motors)
-for x in range(0,10):
+
+
+costLog = np.zeros((Nsteps, 1))
+k = 0
+for x in range(0,Nsteps):
     raw_a = np.random.randint(-100, high = 101)
     print(raw_a)
     motors = [
@@ -47,9 +52,7 @@ for x in range(0,10):
             'duration': 1
         }
     ]
-
     print(motors)
-
     a_t0 = raw_a/motor_max
     raw_angles = c.get_degrees_two_motors(motors)
     raw_theta_t0 = raw_angles[0]
@@ -60,5 +63,10 @@ for x in range(0,10):
     theta_t1 = rf.map_angle(raw_theta_t1)
     x1 = [theta_t0, a_t0]
     d1 = theta_t1
-    nn1.learnNew = (x1, d1, itera1, eta1)
+    J = nn1.learnNew(x1, d1, eta1)
+    costLog[k] = J
+    k += 1
+
+plt.plot(costLog)
+plt.show()
 
