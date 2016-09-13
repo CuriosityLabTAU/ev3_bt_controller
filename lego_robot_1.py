@@ -5,19 +5,18 @@ import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
 
-n1 = 2
-p1 = 10
-m1 = 1
+nInput = 2
+nHidden = 10
+nOut = 1
 eta1 = 0.1
 eps1 = 0.1
-itera1 = 1
 motor_max = 100
 motor_min = -100
 sensor_max = 360
 sensor_min = 1
 Nsteps = 100
 
-nn1 = neuronets.NN(n1, p1, m1, eta1, eps1)
+nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
 nn1.initialize_weights()
 
 motors = [
@@ -63,10 +62,34 @@ for x in range(0,Nsteps):
     theta_t1 = rf.map_angle(raw_theta_t1)
     x1 = [theta_t0, a_t0]
     d1 = theta_t1
-    J = nn1.learnNew(x1, d1, eta1)
+    xa, s1, za, s2, y = nn1.forProp(x1)
+    J = nn1.backProp(xa, s1, za, s2, y, d1)
     costLog[k] = J
     k += 1
 
+plt.figure(1)
 plt.plot(costLog)
+
+
+
+resolution = 10
+i1 = np.linspace(-1.0,1.0,resolution)
+i2 = np.linspace(-1.0,1.0,resolution)
+o1 = np.zeros((resolution, resolution))
+
+for i in range (0, resolution):
+    for j in range (0, resolution):
+        print(j)
+        x1 = [i1[i], i2[j]]
+        xa, s1, za, s2, y = nn1.forProp(x1)
+        o1[i, j] = y
+
+X, Y = np.meshgrid(i1 ,i2)
+
+plt.figure(2)
+plt.contourf(X, Y, o1)
 plt.show()
 
+
+
+print(o1)
