@@ -9,12 +9,13 @@ nInput = 2
 nHidden = 10
 nOut = 1
 eta1 = 0.1
-eps1 = 0.1
-motor_max = 100
-motor_min = -100
+eps1 = 1
+motor_max = 30
+motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 100
+Nsteps = 10
+resolution = 100
 
 nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
 nn1.initialize_weights()
@@ -22,7 +23,7 @@ nn1.initialize_weights()
 motors = [
     {
         'port': 1,
-        'speed': 10,
+        'speed': 0,
         'duration': 1
     },
     {
@@ -37,17 +38,17 @@ c = EV3_BT_Controller(motors)
 costLog = np.zeros((Nsteps, 1))
 k = 0
 for x in range(0,Nsteps):
-    raw_a = np.random.randint(-100, high = 101)
+    raw_a = np.random.randint(motor_min, high = motor_max+1)
     print(raw_a)
     motors = [
         {
             'port': 1,
-            'speed': raw_a,
+            'speed': 0,
             'duration': 1
         },
         {
             'port': 8,
-            'speed': 0,
+            'speed': raw_a,
             'duration': 1
         }
     ]
@@ -70,9 +71,6 @@ for x in range(0,Nsteps):
 plt.figure(1)
 plt.plot(costLog)
 
-
-
-resolution = 10
 i1 = np.linspace(-1.0,1.0,resolution)
 i2 = np.linspace(-1.0,1.0,resolution)
 o1 = np.zeros((resolution, resolution))
@@ -89,7 +87,5 @@ X, Y = np.meshgrid(i1 ,i2)
 plt.figure(2)
 plt.contourf(X, Y, o1)
 plt.show()
-
-
 
 print(o1)

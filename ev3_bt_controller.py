@@ -8,8 +8,9 @@ class EV3_BT_Controller:
         self.host = '00:16:53:4A:47:26'
         self.ev3 = ev3.EV3(protocol=ev3.BLUETOOTH, host=self.host)
         self.motors = motors
-        self.base_pos = (0,0)
+        self.base_pos = (10,10)
         self.base_pos = self.get_degrees_two_motors(self.motors)
+        print(self.base_pos)
 
     def move_single_motor(self, motor):
         ops = b''.join([
@@ -76,7 +77,7 @@ class EV3_BT_Controller:
         (pos_0, pos_1) = struct.unpack('<fi', reply[5:])
         pos_0 -= self.base_pos[0]
         pos_1 -= self.base_pos[1]
-        return pos_0, pos_1
+        return pos_0, pos_1, self.base_pos[0], self.base_pos[1]
 
 
 
