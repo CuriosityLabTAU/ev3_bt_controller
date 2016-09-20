@@ -18,6 +18,7 @@ sensor_max = 360
 sensor_min = 1
 Nsteps = 10
 resolution = 100
+safety_margin = 21
 
 nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
 nn1.initialize_weights()
@@ -45,6 +46,15 @@ k = 0
 for x in range(0,Nsteps):
     raw_a = np.random.randint(motor_min, high = motor_max+1)
     print(raw_a)
+    a_t0 = raw_a/motor_max
+    raw_angles = c.get_degrees_two_motors(motors)
+    raw_theta_t0 = raw_angles[0]
+    theta_t0 = rf.map_angle(raw_theta_t0)
+    if raw_angles[1]-m1_min < safety_margin and raw_a > 0 :
+        raw_a = 0
+    if m1_max - raw_angles[1]< safety_margin and raw_a < 0 :
+        raw_a = 0
+    c.move_two_motors(motors)
     motors = [
         {
             'port': 1,
@@ -58,11 +68,6 @@ for x in range(0,Nsteps):
         }
     ]
     print(motors)
-    a_t0 = raw_a/motor_max
-    raw_angles = c.get_degrees_two_motors(motors)
-    raw_theta_t0 = raw_angles[0]
-    theta_t0 = rf.map_angle(raw_theta_t0)
-    c.move_two_motors(motors)
     raw_angles = c.get_degrees_two_motors(motors)
     raw_theta_t1 = raw_angles[0]
     theta_t1 = rf.map_angle(raw_theta_t1)

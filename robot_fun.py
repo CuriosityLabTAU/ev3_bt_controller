@@ -73,3 +73,17 @@ def calibrate_motor(motors, c):
             a = 0
 
     return m1_min, m1_max
+
+def map2normal(raw_d, min_d, max_d):
+    average  = (max_d + min_d)/2
+    amplitude = (max_d - min_d)/2
+    mapped_d = (raw_d - average) / amplitude
+    return mapped_d
+
+def map_from_normal(raw_d, min_d, max_d):
+    average  = (max_d + min_d)/2
+    amplitude = (max_d - min_d)/2
+    mapped_d = raw_d * amplitude + average
+    return mapped_d
+
+
