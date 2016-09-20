@@ -4,6 +4,8 @@ from ev3_bt_controller import *
 import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
+import time
+import robot_fun
 
 nInput = 2
 nHidden = 10
@@ -33,6 +35,9 @@ motors = [
     }
 ]
 c = EV3_BT_Controller(motors)
+
+m1_min, m1_max = robot_fun.calibrate_motor(motors, c)
+
 
 
 costLog = np.zeros((Nsteps, 1))

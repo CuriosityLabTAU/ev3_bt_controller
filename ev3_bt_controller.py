@@ -75,9 +75,9 @@ class EV3_BT_Controller:
         ])
         reply = self.ev3.send_direct_cmd(ops, global_mem=8)
         (pos_0, pos_1) = struct.unpack('<fi', reply[5:])
-        pos_0 -= self.base_pos[0]
-        pos_1 -= self.base_pos[1]
-        return pos_0, pos_1, self.base_pos[0], self.base_pos[1]
+        #pos_0 -= self.base_pos[0]
+        #pos_1 -= self.base_pos[1]
+        return pos_0, pos_1
 
 
 
