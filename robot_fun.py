@@ -11,6 +11,8 @@ def map_angle(angle):
 
 def calibrate_motor(c):
 
+    print('starting calibration')
+
     calibration_speed = 10
 
     a = 1
@@ -76,17 +78,20 @@ def calibrate_motor(c):
 
     return m1_min, m1_max
 
+
 def map2normal(raw_d, min_d, max_d):
-    average  = (max_d + min_d)/2
+    average = (max_d + min_d)/2
     amplitude = (max_d - min_d)/2
     mapped_d = (raw_d - average) / amplitude
     return mapped_d
 
+
 def map_from_normal(raw_d, min_d, max_d):
-    average  = (max_d + min_d)/2
+    average = (max_d + min_d)/2
     amplitude = (max_d - min_d)/2
     mapped_d = raw_d * amplitude + average
     return mapped_d
+
 
 def move2middle(m1_min, m1_max, c, motors) :
     angles = c.get_degrees_two_motors(motors)

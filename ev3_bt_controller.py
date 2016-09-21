@@ -10,7 +10,6 @@ class EV3_BT_Controller:
         self.motors = motors
         self.base_pos = (10,10)
         self.base_pos = self.get_degrees_two_motors(self.motors)
-        print(self.base_pos)
 
     def move_single_motor(self, motor):
         ops = b''.join([
