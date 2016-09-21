@@ -5,18 +5,19 @@ import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
 import time
-import robot_fun
 
+
+np.random.seed(1)
 nInput = 2
 nHidden = 10
 nOut = 1
-eta1 = 0.1
+eta1 = 0.05
 eps1 = 1
 motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 10
+Nsteps = 500
 resolution = 100
 safety_margin = 21
 
@@ -37,40 +38,40 @@ motors = [
 ]
 c = EV3_BT_Controller(motors)
 
-m1_min, m1_max = robot_fun.calibrate_motor(motors, c)
-
-
+m1_min, m1_max = rf.calibrate_motor(c)
+rf.move2middle(m1_min, m1_max, c, motors)
 
 costLog = np.zeros((Nsteps, 1))
 k = 0
 for x in range(0,Nsteps):
     raw_a = np.random.randint(motor_min, high = motor_max+1)
     print(raw_a)
-    a_t0 = raw_a/motor_max
+    a_t0 = rf.map2normal(raw_a, motor_min, motor_max)
     raw_angles = c.get_degrees_two_motors(motors)
-    raw_theta_t0 = raw_angles[0]
-    theta_t0 = rf.map_angle(raw_theta_t0)
-    if raw_angles[1]-m1_min < safety_margin and raw_a > 0 :
+    raw_theta_t0 = raw_angles[1]
+    theta_t0 = rf.map2normal(raw_theta_t0, m1_min, m1_max)
+    if raw_angles[1]-m1_min < safety_margin and raw_a < 0 :
         raw_a = 0
-    if m1_max - raw_angles[1]< safety_margin and raw_a < 0 :
+    if m1_max - raw_angles[1]< safety_margin and raw_a > 0 :
         raw_a = 0
-    c.move_two_motors(motors)
     motors = [
         {
             'port': 1,
             'speed': 0,
-            'duration': 1
+            'duration': 0.1
         },
         {
             'port': 8,
             'speed': raw_a,
-            'duration': 1
+            'duration': 0.1
         }
     ]
+    c.move_two_motors(motors)
     print(motors)
+    time.sleep(0.4)
     raw_angles = c.get_degrees_two_motors(motors)
-    raw_theta_t1 = raw_angles[0]
-    theta_t1 = rf.map_angle(raw_theta_t1)
+    raw_theta_t1 = raw_angles[1]
+    theta_t1 = rf.map2normal(raw_theta_t1, m1_min, m1_max)
     x1 = [theta_t0, a_t0]
     d1 = theta_t1
     xa, s1, za, s2, y = nn1.forProp(x1)

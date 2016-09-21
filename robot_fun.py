@@ -9,13 +9,13 @@ def map_angle(angle):
     return angle_normal
 
 
-def calibrate_motor(motors, c):
+def calibrate_motor(c):
 
-    calibration_speed = 2
+    calibration_speed = 10
 
     a = 1
     while (a == 1) :
-        time.sleep(1)
+        time.sleep(1.5)
         motors = [
         {
             'port': 1,
@@ -29,15 +29,15 @@ def calibrate_motor(motors, c):
         }
         ]
         angles = c.get_degrees_two_motors(motors)
-        print(angles)
+        #print(angles)
         old_angle = angles[1]
-        print('old angle =')
-        print(old_angle)
+        #print('old angle =')
+        #print(old_angle)
         c.move_two_motors(motors)
-        time.sleep(1)
+        time.sleep(1.5)
         angles = c.get_degrees_two_motors(motors)
-        print('new angle =')
-        print(angles[1])
+        print('old angle = ', old_angle, ' new angle =', angles[1])
+        #print(angles[1])
         if angles[1] == old_angle :
             m1_max = old_angle
             a = 0
@@ -45,7 +45,7 @@ def calibrate_motor(motors, c):
     a = 1
 
     while (a == 1) :
-        time.sleep(1)
+        time.sleep(1.5)
         motors = [
         {
             'port': 1,
@@ -59,18 +59,20 @@ def calibrate_motor(motors, c):
         }
         ]
         angles = c.get_degrees_two_motors(motors)
-        print(angles)
+        #print(angles)
         old_angle = angles[1]
-        print('old angle =')
-        print(old_angle)
+        #print('old angle =')
+        #print(old_angle)
         c.move_two_motors(motors)
-        time.sleep(1)
+        time.sleep(1.5)
         angles = c.get_degrees_two_motors(motors)
-        print('new angle =')
-        print(angles[1])
+        print('old angle = ', old_angle, ' new angle =', angles[1])
+        #print('new angle =')
+        #print(angles[1])
         if angles[1] == old_angle :
             m1_min = old_angle
             a = 0
+    print("calibration done: max angle = ", m1_max, " min angle = ", m1_min)
 
     return m1_min, m1_max
 
@@ -85,5 +87,32 @@ def map_from_normal(raw_d, min_d, max_d):
     amplitude = (max_d - min_d)/2
     mapped_d = raw_d * amplitude + average
     return mapped_d
+
+def move2middle(m1_min, m1_max, c, motors) :
+    angles = c.get_degrees_two_motors(motors)
+    angle1 = angles[1]
+    middle = (m1_max + m1_min) / 2
+    diff = 10
+    while diff > 5 :
+        diff = angle1 - middle
+        if diff > 0 :
+            v = -10
+        else :
+            v = 10
+        motors = [
+        {
+            'port': 1,
+            'speed': 0,
+            'duration': 1
+        },
+        {
+            'port': 8,
+            'speed': v,
+            'duration': 0.01
+        }
+        ]
+        c.move_two_motors(motors)
+    print('motor is centered')
+
 
 
