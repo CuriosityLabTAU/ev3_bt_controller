@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class NN:
 
-    def __init__(self, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.001, pruning_thresh=0.0001):
+    def __init__(self, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.0001, pruning_thresh=1000):
         self.nInput = nInput
         self.nHidden = nHidden
         self.nOutput = nOutput
@@ -60,11 +60,37 @@ class NN:
         d1 = e1*sigtag1
         D1 = np.outer(-d1, xa.T)
         self.Wa2 -= self.eta * D2 + self.pruning_rate * np.sign(self.Wa2)
-        self.Wa1 -= self.eta * D1 + self.pruning_rate * np.sign(self.Wa1)
+        self.Wa1 -= self.eta * D1 +self.pruning_rate * np.sign(self.Wa1)
         return self.cost(d, y)
 
     def removeNode(self):
-        pass
+
+        abs_Wa1 = np.absolute(self.Wa1)
+        abs_Wa2 = np.absolute(self.Wa2)
+
+        weight_sum1 = np.sum(abs_Wa1, axis=1)
+        weight_sum2 = np.sum(abs_Wa2, axis=0)
+        weight_sum2 = weight_sum2[1:]
+
+        total_sum = weight_sum1 + weight_sum2
+
+        print('total sum = ', total_sum)
+
+        prune_index = 1000
+
+        for i in range(0, self.nHidden):
+            if total_sum[i] < self.pruning_thresh:
+                prune_index = i
+                self.nHidden -= 1
+
+        if prune_index < 999 :
+            self.Wa1 = np.delete(self.Wa1, prune_index, 0)
+            self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
+
+
+
+
+
 
 
 

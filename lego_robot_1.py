@@ -17,17 +17,19 @@ motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 500
+Nsteps = 400
 resolution = 100
 safety_margin = 21
+pruning_rate = 0.0001
+pruning_thresh = 0.0001
 
-nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
+nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
 nn1.initialize_weights()
 
-nn2 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
+nn2 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
 nn2.initialize_weights()
 
-nn3 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1)
+nn3 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
 nn3.initialize_weights()
 
 motors = [
@@ -76,7 +78,7 @@ for x in range(0,Nsteps):
     ]
     c.move_two_motors(motors)
     print(k)
-    time.sleep(0.4)
+    time.sleep(0.6)
     raw_angles = c.get_degrees_two_motors(motors)
     raw_theta_t1 = raw_angles[1]
     theta_t1 = rf.map2normal(raw_theta_t1, m1_min, m1_max)
@@ -86,6 +88,7 @@ for x in range(0,Nsteps):
     xa, s1, za, s2, y = nn1.forProp(x1)
     J = nn1.backProp(xa, s1, za, s2, y, d1)
     costLog1[k] = J
+    nn1.removeNode()
 
     x1 = [theta_t1, a_t0]
     d1 = theta_t0
@@ -98,6 +101,7 @@ for x in range(0,Nsteps):
     xa, s1, za, s2, y = nn3.forProp(x1)
     J = nn3.backProp(xa, s1, za, s2, y, d1)
     costLog3[k] = J
+
 
     k += 1
 
