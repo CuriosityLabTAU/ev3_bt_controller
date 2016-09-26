@@ -60,8 +60,9 @@ class NN:
         d1 = e1*sigtag1
         D1 = np.outer(-d1, xa.T)
         self.Wa2 -= self.eta * D2 + self.pruning_rate * np.sign(self.Wa2)
-        self.Wa1 -= self.eta * D1 +self.pruning_rate * np.sign(self.Wa1)
+        self.Wa1 -= self.eta * D1 + self.pruning_rate * np.sign(self.Wa1)
         return self.cost(d, y)
+
 
     def removeNode(self):
 

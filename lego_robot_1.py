@@ -11,17 +11,20 @@ np.random.seed(1)
 nInput = 2
 nHidden = 10
 nOut = 1
+
 eta1 = 0.05
 eps1 = 1
+pruning_rate = 0.00001
+pruning_thresh = 0.1
+
 motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 400
+Nsteps = 200
 resolution = 100
 safety_margin = 21
-pruning_rate = 0.0001
-pruning_thresh = 0.0001
+
 
 nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
 nn1.initialize_weights()
@@ -55,7 +58,7 @@ costLog3 = np.zeros((Nsteps, 1))
 
 k = 0
 for x in range(0,Nsteps):
-    raw_a = np.random.randint(motor_min, high = motor_max+1)
+    raw_a = np.random.randint(motor_min, high=motor_max+1)
     a_t0 = rf.map2normal(raw_a, motor_min, motor_max)
     raw_angles = c.get_degrees_two_motors(motors)
     raw_theta_t0 = raw_angles[1]
@@ -73,38 +76,43 @@ for x in range(0,Nsteps):
         {
             'port': 8,
             'speed': raw_a,
-            'duration': 0.1
+            'duration': 0.01
         }
     ]
     c.move_two_motors(motors)
-    print(k)
+
     time.sleep(0.6)
     raw_angles = c.get_degrees_two_motors(motors)
     raw_theta_t1 = raw_angles[1]
     theta_t1 = rf.map2normal(raw_theta_t1, m1_min, m1_max)
 
+    print('step = ', k, ' theta0 = ', theta_t0, ' a = ', a_t0, ' theta1 = ', theta_t1)
+
     x1 = [theta_t0, a_t0]
     d1 = theta_t1
-    xa, s1, za, s2, y = nn1.forProp(x1)
-    J = nn1.backProp(xa, s1, za, s2, y, d1)
+    xa1, s11, za1, s21, y1 = nn1.forProp(x1)
+    J = nn1.backProp(xa1, s11, za1, s21, y1, d1)
     costLog1[k] = J
-    nn1.removeNode()
+    #nn1.removeNode()
 
-    x1 = [theta_t1, a_t0]
-    d1 = theta_t0
-    xa, s1, za, s2, y = nn2.forProp(x1)
-    J = nn2.backProp(xa, s1, za, s2, y, d1)
+    x2 = [theta_t1, a_t0]
+    d2 = theta_t0
+    xa2, s12, za2, s22, y2 = nn2.forProp(x2)
+    J = nn2.backProp(xa2, s12, za2, s22, y2, d2)
     costLog2[k] = J
+    #nn2.removeNode()
 
-    x1 = [theta_t1, theta_t0]
-    d1 = a_t0
-    xa, s1, za, s2, y = nn3.forProp(x1)
-    J = nn3.backProp(xa, s1, za, s2, y, d1)
+    x3 = [theta_t1, theta_t0]
+    d3 = a_t0
+    xa3, s13, za3, s23, y3 = nn3.forProp(x3)
+    J = nn3.backProp(xa3, s13, za3, s23, y3, d3)
     costLog3[k] = J
-
+    #nn3.removeNode()
 
     k += 1
 
+xa, s1, za, s2, y1 = nn3.forProp([1,-1])
+print('y1 = ', y1)
 
 plt.figure(1)
 plt.subplot(321)
@@ -130,11 +138,11 @@ o3 = np.zeros((resolution, resolution))
 
 for i in range(0, resolution):
     for j in range(0, resolution):
-        print(j)
         x1 = [i1[i], i2[j]]
         xa, s1, za, s2, y1 = nn1.forProp(x1)
         xa, s1, za, s2, y2 = nn2.forProp(x1)
         xa, s1, za, s2, y3 = nn3.forProp(x1)
+        print('x = ', x1[0], ' y = ', x1[1], 'y3 = ', y3)
         o1[i, j] = y1
         o2[i, j] = y2
         o3[i, j] = y3
@@ -142,21 +150,21 @@ for i in range(0, resolution):
 X, Y = np.meshgrid(i1, i2)
 
 plt.subplot(322)
-plt.contourf(X, Y, o1)
+plt.contourf(X, Y, np.transpose(o1))
 plt.xlabel('p(t-1)')
 plt.ylabel('m(t)')
 plt.title('V(p(t)|p(t-1),m(t)')
 plt.colorbar()
 
 plt.subplot(324)
-plt.contourf(X, Y, o2)
+plt.contourf(X, Y, np.transpose(o2))
 plt.xlabel('p(t)')
 plt.ylabel('m(t)')
 plt.title('V(p(t-1)|p(t),m(t)')
 plt.colorbar()
 
 plt.subplot(326)
-plt.contourf(X, Y, o3)
+plt.contourf(X, Y, np.transpose(o3))
 plt.xlabel('p(t)')
 plt.ylabel('p(t-1)')
 plt.title('V(m(t)|p(t),p(t-1)')
