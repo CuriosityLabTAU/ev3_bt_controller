@@ -5,6 +5,7 @@ import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
 import time
+import math
 
 
 np.random.seed(1)
@@ -16,7 +17,6 @@ eta1 = 0.05
 eps1 = 1
 pruning_rate = 0.00001
 pruning_thresh = 0.1
-
 motor_max = 30
 motor_min = -30
 sensor_max = 360
@@ -25,15 +25,18 @@ Nsteps = 200
 resolution = 100
 safety_margin = 21
 
+N_motors = 2
+N_elements = N_motors * 3
+N = N_elements
+N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))
+elements = np.zeros((N_elements, 1))
 
-nn1 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
-nn1.initialize_weights()
+nn = {}
+for i in range(1, N_nets+1):
+    nn[i] = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
+    nn[i].initialize_weights()
 
-nn2 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
-nn2.initialize_weights()
-
-nn3 = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
-nn3.initialize_weights()
+costLog = np.zeros((Nsteps, N_nets))
 
 motors = [
     {
@@ -49,12 +52,10 @@ motors = [
 ]
 c = EV3_BT_Controller(motors)
 
-m1_min, m1_max = rf.calibrate_motor(c)
-rf.move2middle(m1_min, m1_max, c, motors)
-
-costLog1 = np.zeros((Nsteps, 1))
-costLog2 = np.zeros((Nsteps, 1))
-costLog3 = np.zeros((Nsteps, 1))
+m1_min, m1_max = rf.calibrate_motor(c, motors, 1)
+rf.move2middle(m1_min, m1_max, c, motors, 1)
+m2_min, m2_max = rf.calibrate_motor(c, motors, 0)
+rf.move2middle(m1_min, m1_max, c, motors, 0)
 
 k = 0
 for x in range(0,Nsteps):
@@ -90,43 +91,43 @@ for x in range(0,Nsteps):
 
     x1 = [theta_t0, a_t0]
     d1 = theta_t1
-    xa1, s11, za1, s21, y1 = nn1.forProp(x1)
-    J = nn1.backProp(xa1, s11, za1, s21, y1, d1)
-    costLog1[k] = J
+    xa1, s11, za1, s21, y1 = nn[1].forProp(x1)
+    J = nn[1].backProp(xa1, s11, za1, s21, y1, d1)
+    costLog[k,1] = J
     #nn1.removeNode()
 
     x2 = [theta_t1, a_t0]
     d2 = theta_t0
-    xa2, s12, za2, s22, y2 = nn2.forProp(x2)
-    J = nn2.backProp(xa2, s12, za2, s22, y2, d2)
-    costLog2[k] = J
+    xa2, s12, za2, s22, y2 = nn[2].forProp(x2)
+    J = nn[2].backProp(xa2, s12, za2, s22, y2, d2)
+    costLog[k,2] = J
     #nn2.removeNode()
 
     x3 = [theta_t1, theta_t0]
     d3 = a_t0
-    xa3, s13, za3, s23, y3 = nn3.forProp(x3)
-    J = nn3.backProp(xa3, s13, za3, s23, y3, d3)
-    costLog3[k] = J
+    xa3, s13, za3, s23, y3 = nn[3].forProp(x3)
+    J = nn[3].backProp(xa3, s13, za3, s23, y3, d3)
+    costLog[k,3] = J
     #nn3.removeNode()
 
     k += 1
 
-xa, s1, za, s2, y1 = nn3.forProp([1,-1])
+xa, s1, za, s2, y1 = nn[3].forProp([1,-1])
 print('y1 = ', y1)
 
 plt.figure(1)
 plt.subplot(321)
-plt.plot(costLog1)
+plt.plot(costLog[:,1])
 plt.xlabel('time(steps)')
 plt.ylabel('Cost')
 
 plt.subplot(323)
-plt.plot(costLog2)
+plt.plot(costLog[:,2])
 plt.xlabel('time(steps)')
 plt.ylabel('Cost')
 
 plt.subplot(325)
-plt.plot(costLog3)
+plt.plot(costLog[:,3])
 plt.xlabel('time(steps)')
 plt.ylabel('Cost')
 
@@ -139,9 +140,9 @@ o3 = np.zeros((resolution, resolution))
 for i in range(0, resolution):
     for j in range(0, resolution):
         x1 = [i1[i], i2[j]]
-        xa, s1, za, s2, y1 = nn1.forProp(x1)
-        xa, s1, za, s2, y2 = nn2.forProp(x1)
-        xa, s1, za, s2, y3 = nn3.forProp(x1)
+        xa, s1, za, s2, y1 = nn[1].forProp(x1)
+        xa, s1, za, s2, y2 = nn[2].forProp(x1)
+        xa, s1, za, s2, y3 = nn[3].forProp(x1)
         print('x = ', x1[0], ' y = ', x1[1], 'y3 = ', y3)
         o1[i, j] = y1
         o2[i, j] = y2
