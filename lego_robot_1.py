@@ -30,10 +30,11 @@ N_elements = N_motors * 3
 N = N_elements
 N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))
 elements = np.zeros((N_elements, 1))
+x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
 
-nn = {}
-for i in range(1, N_nets+1):
-    nn[i] = neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh)
+nn = []
+for i in range(0, N_nets):
+    nn.append(neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh))
     nn[i].initialize_weights()
 
 costLog = np.zeros((Nsteps, N_nets))
@@ -59,24 +60,32 @@ rf.move2middle(m1_min, m1_max, c, motors, 0)
 
 k = 0
 for x in range(0,Nsteps):
-    raw_a = np.random.randint(motor_min, high=motor_max+1)
-    a_t0 = rf.map2normal(raw_a, motor_min, motor_max)
+    raw_a1 = np.random.randint(motor_min, high=motor_max+1)
+    raw_a2 = np.random.randint(motor_min, high=motor_max+1)
+    a1_t0 = rf.map2normal(raw_a1, motor_min, motor_max)
+    a2_t0 = rf.map2normal(raw_a2, motor_min, motor_max)
     raw_angles = c.get_degrees_two_motors(motors)
-    raw_theta_t0 = raw_angles[1]
-    theta_t0 = rf.map2normal(raw_theta_t0, m1_min, m1_max)
-    if raw_angles[1]-m1_min < safety_margin and raw_a < 0 :
-        raw_a = 0
-    if m1_max - raw_angles[1]< safety_margin and raw_a > 0 :
-        raw_a = 0
+    raw_p1_t0 = raw_angles[1]
+    raw_p2_t0 = raw_angles[0]
+    p1_t0 = rf.map2normal(raw_p1_t0, m1_min, m1_max)
+    p2_t0 = rf.map2normal(raw_p2_t0, m2_min, m2_max)
+    if raw_angles[1]-m1_min < safety_margin and raw_a1 < 0:
+        raw_a1 = 0
+    if m1_max - raw_angles[1]< safety_margin and raw_a1 > 0:
+        raw_a1 = 0
+    if raw_angles[0]-m2_min < safety_margin and raw_a2 < 0:
+        raw_a2 = 0
+    if m2_max - raw_angles[0]< safety_margin and raw_a2 > 0:
+        raw_a2 = 0
     motors = [
         {
             'port': 1,
-            'speed': 0,
-            'duration': 0.1
+            'speed': raw_a2,
+            'duration': 0.01
         },
         {
             'port': 8,
-            'speed': raw_a,
+            'speed': raw_a1,
             'duration': 0.01
         }
     ]
@@ -84,36 +93,28 @@ for x in range(0,Nsteps):
 
     time.sleep(0.6)
     raw_angles = c.get_degrees_two_motors(motors)
-    raw_theta_t1 = raw_angles[1]
-    theta_t1 = rf.map2normal(raw_theta_t1, m1_min, m1_max)
+    raw_p1_t1 = raw_angles[1]
+    raw_p2_t1 = raw_angles[0]
+    p1_t1 = rf.map2normal(raw_p1_t1, m1_min, m1_max)
+    p2_t1 = rf.map2normal(raw_p2_t1, m2_min, m2_max)
 
-    print('step = ', k, ' theta0 = ', theta_t0, ' a = ', a_t0, ' theta1 = ', theta_t1)
+    print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
 
-    x1 = [theta_t0, a_t0]
-    d1 = theta_t1
-    xa1, s11, za1, s21, y1 = nn[1].forProp(x1)
-    J = nn[1].backProp(xa1, s11, za1, s21, y1, d1)
-    costLog[k,1] = J
-    #nn1.removeNode()
+    z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
 
-    x2 = [theta_t1, a_t0]
-    d2 = theta_t0
-    xa2, s12, za2, s22, y2 = nn[2].forProp(x2)
-    J = nn[2].backProp(xa2, s12, za2, s22, y2, d2)
-    costLog[k,2] = J
-    #nn2.removeNode()
-
-    x3 = [theta_t1, theta_t0]
-    d3 = a_t0
-    xa3, s13, za3, s23, y3 = nn[3].forProp(x3)
-    J = nn[3].backProp(xa3, s13, za3, s23, y3, d3)
-    costLog[k,3] = J
-    #nn3.removeNode()
-
+    l = 0
+    for i in range(0, N_elements):
+        for j in range(i, N_elements):
+            for m in range(0, N_elements):
+                if m != j and m != i:
+                    x1 = [z[i], z[j]]
+                    d1 = z[m]
+                    xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
+                    J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
+                    costLog[k, l] = J
+                    print(l)
+                    l += 1
     k += 1
-
-xa, s1, za, s2, y1 = nn[3].forProp([1,-1])
-print('y1 = ', y1)
 
 plt.figure(1)
 plt.subplot(321)
