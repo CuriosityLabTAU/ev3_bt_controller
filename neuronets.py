@@ -83,8 +83,9 @@ class NN:
             if total_sum[i] < self.pruning_thresh:
                 prune_index = i
                 self.nHidden -= 1
+                break
 
-        if prune_index < 999 :
+        if prune_index < 999:
             self.Wa1 = np.delete(self.Wa1, prune_index, 0)
             self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
 

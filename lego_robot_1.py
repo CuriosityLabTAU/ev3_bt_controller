@@ -13,10 +13,10 @@ nInput = 2
 nHidden = 10
 nOut = 1
 
-eta1 = 0.05
+eta1 = 0.01
 eps1 = 1
-pruning_rate = 0.00001
-pruning_thresh = 0.1
+pruning_rate = 0.0001
+pruning_thresh = 0.05
 motor_max = 30
 motor_min = -30
 sensor_max = 360
@@ -33,6 +33,7 @@ elements = np.zeros((N_elements, 1))
 costLog = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
+viable = np.ones((N_nets,1))
 
 nn = []
 for i in range(0, N_nets):
@@ -116,10 +117,14 @@ for k in range(0, Nsteps):
                     xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
                     J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
                     costLog[k, l] = J
+                    if nn[l].nHidden > 0:
+                        nn[l].removeNode()
+                        if nn[l].nHidden == 0:
+                            viable[l] = 1
                     l += 1
 
 
-
+print(viable)
 i1 = np.linspace(-1.0, 1.0, resolution)
 i2 = np.linspace(-1.0, 1.0, resolution)
 outPut = np.zeros((resolution, resolution, N_nets))
