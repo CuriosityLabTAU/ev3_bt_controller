@@ -15,13 +15,13 @@ nOut = 1
 
 eta1 = 0.01
 eps1 = 1
-pruning_rate = 0.0001
-pruning_thresh = 0.05
+pruning_rate = 0.05
+pruning_thresh = 0.1
 motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 200
+Nsteps = 300
 resolution = 100
 safety_margin = 21
 
@@ -31,6 +31,7 @@ N = N_elements
 N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))  # calculates the number of networks
 elements = np.zeros((N_elements, 1))
 costLog = np.zeros((Nsteps, N_nets))
+neuronsPruned = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
 viable = np.ones((N_nets,1))
@@ -59,7 +60,10 @@ rf.move2middle(m1_min, m1_max, c, motors, 1)
 m2_min, m2_max = rf.calibrate_motor(c, motors, 0)
 rf.move2middle(m2_min, m2_max, c, motors, 0)
 
-
+#m1_max = 193
+#m1_min = -14
+#m2_min = -10
+#m2_max = 130
 
 # learning loop
 
@@ -121,6 +125,7 @@ for k in range(0, Nsteps):
                         nn[l].removeNode()
                         if nn[l].nHidden == 0:
                             viable[l] = 1
+                    neuronsPruned[k, l] = nn[l].nHidden
                     l += 1
 
 
@@ -129,15 +134,19 @@ i1 = np.linspace(-1.0, 1.0, resolution)
 i2 = np.linspace(-1.0, 1.0, resolution)
 outPut = np.zeros((resolution, resolution, N_nets))
 X, Y = np.meshgrid(i1, i2)
+t = np.linspace(0, Nsteps, Nsteps)
 
 for l in range(0, N_nets):
     plt.figure(l)
 
-    plt.subplot(121)
-    plt.plot(costLog[:, l])
+    plt.subplot(221)
+    plt.plot(t, costLog[:, l])
     plt.xlabel('time(steps)')
     plt.ylabel('Cost')
-
+    plt.subplot(223)
+    plt.plot(t, neuronsPruned[:, l])
+    plt.xlabel('hidden neurons')
+    plt.ylabel('Cost')
     for i in range(0, resolution):
         for j in range(0, resolution):
             x1 = [i1[i], i2[j]]
