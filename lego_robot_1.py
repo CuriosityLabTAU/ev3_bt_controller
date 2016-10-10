@@ -25,19 +25,19 @@ Nsteps = 200
 resolution = 100
 safety_margin = 21
 
-N_motors = 2
-N_elements = N_motors * 3
+N_motors = 2  # number of motors
+N_elements = N_motors * 3  # each motor has three elements - p(t), p(t+1), a(t)
 N = N_elements
-N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))
+N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))  # calculates the number of networks
 elements = np.zeros((N_elements, 1))
+costLog = np.zeros((Nsteps, N_nets))
+axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
 
 nn = []
 for i in range(0, N_nets):
     nn.append(neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh))
     nn[i].initialize_weights()
-
-costLog = np.zeros((Nsteps, N_nets))
 
 motors = [
     {
@@ -56,10 +56,13 @@ c = EV3_BT_Controller(motors)
 m1_min, m1_max = rf.calibrate_motor(c, motors, 1)
 rf.move2middle(m1_min, m1_max, c, motors, 1)
 m2_min, m2_max = rf.calibrate_motor(c, motors, 0)
-rf.move2middle(m1_min, m1_max, c, motors, 0)
+rf.move2middle(m2_min, m2_max, c, motors, 0)
 
-k = 0
-for x in range(0,Nsteps):
+
+
+# learning loop
+
+for k in range(0, Nsteps):
     raw_a1 = np.random.randint(motor_min, high=motor_max+1)
     raw_a2 = np.random.randint(motor_min, high=motor_max+1)
     a1_t0 = rf.map2normal(raw_a1, motor_min, motor_max)
@@ -81,12 +84,12 @@ for x in range(0,Nsteps):
         {
             'port': 1,
             'speed': raw_a2,
-            'duration': 0.01
+            'duration': 0.1
         },
         {
             'port': 8,
             'speed': raw_a1,
-            'duration': 0.01
+            'duration': 0.1
         }
     ]
     c.move_two_motors(motors)
@@ -104,73 +107,47 @@ for x in range(0,Nsteps):
 
     l = 0
     for i in range(0, N_elements):
-        for j in range(i, N_elements):
+        for j in range(i+1, N_elements):
             for m in range(0, N_elements):
                 if m != j and m != i:
+                    axis_labels[l, :] = [i, j, m]
                     x1 = [z[i], z[j]]
                     d1 = z[m]
                     xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
                     J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
                     costLog[k, l] = J
-                    print(l)
                     l += 1
-    k += 1
 
-plt.figure(1)
-plt.subplot(321)
-plt.plot(costLog[:,1])
-plt.xlabel('time(steps)')
-plt.ylabel('Cost')
 
-plt.subplot(323)
-plt.plot(costLog[:,2])
-plt.xlabel('time(steps)')
-plt.ylabel('Cost')
-
-plt.subplot(325)
-plt.plot(costLog[:,3])
-plt.xlabel('time(steps)')
-plt.ylabel('Cost')
 
 i1 = np.linspace(-1.0, 1.0, resolution)
 i2 = np.linspace(-1.0, 1.0, resolution)
-o1 = np.zeros((resolution, resolution))
-o2 = np.zeros((resolution, resolution))
-o3 = np.zeros((resolution, resolution))
-
-for i in range(0, resolution):
-    for j in range(0, resolution):
-        x1 = [i1[i], i2[j]]
-        xa, s1, za, s2, y1 = nn[1].forProp(x1)
-        xa, s1, za, s2, y2 = nn[2].forProp(x1)
-        xa, s1, za, s2, y3 = nn[3].forProp(x1)
-        print('x = ', x1[0], ' y = ', x1[1], 'y3 = ', y3)
-        o1[i, j] = y1
-        o2[i, j] = y2
-        o3[i, j] = y3
-
+outPut = np.zeros((resolution, resolution, N_nets))
 X, Y = np.meshgrid(i1, i2)
 
-plt.subplot(322)
-plt.contourf(X, Y, np.transpose(o1))
-plt.xlabel('p(t-1)')
-plt.ylabel('m(t)')
-plt.title('V(p(t)|p(t-1),m(t)')
-plt.colorbar()
+for l in range(0, N_nets):
+    plt.figure(l)
 
-plt.subplot(324)
-plt.contourf(X, Y, np.transpose(o2))
-plt.xlabel('p(t)')
-plt.ylabel('m(t)')
-plt.title('V(p(t-1)|p(t),m(t)')
-plt.colorbar()
+    plt.subplot(121)
+    plt.plot(costLog[:, l])
+    plt.xlabel('time(steps)')
+    plt.ylabel('Cost')
 
-plt.subplot(326)
-plt.contourf(X, Y, np.transpose(o3))
-plt.xlabel('p(t)')
-plt.ylabel('p(t-1)')
-plt.title('V(m(t)|p(t),p(t-1)')
-plt.colorbar()
+    for i in range(0, resolution):
+        for j in range(0, resolution):
+            x1 = [i1[i], i2[j]]
+            xa, s1, za, s2, y1 = nn[l].forProp(x1)
+            outPut[i, j, l] = y1
+
+    plt.subplot(122)
+    b = outPut[:, :, l]
+    out = np.squeeze(b)
+    plt.contourf(X, Y, np.transpose(out))
+    plt.xlabel(x_labels[int(axis_labels[l, 0])])
+    plt.ylabel(x_labels[int(axis_labels[l, 1])])
+    plt.title(x_labels[int(axis_labels[l, 2])])
+    plt.colorbar()
+
 
 plt.tight_layout()
 plt.show()
