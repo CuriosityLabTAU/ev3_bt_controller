@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class NN:
 
-    def __init__(self, input1_index, input2_index, output1_index, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.0001, pruning_thresh=1000):
+    def __init__(self, input1_index, input2_index, output1_index, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.0001, pruning_thresh=1000, viable=1, i_mul=10):
         self.nInput = nInput
         self.nHidden = nHidden
         self.nOutput = nOutput
@@ -14,7 +14,9 @@ class NN:
         self.pruning_thresh = pruning_thresh
         self.input1_index = input1_index
         self.input2_index = input2_index
-        self.output1_index= output1_index
+        self.output1_index = output1_index
+        self.viable = viable
+        self.i_mul = i_mul
 
     def sig(z):
         h = np.tanh(z)
@@ -69,28 +71,40 @@ class NN:
 
     def removeNode(self):
 
-        abs_Wa1 = np.absolute(self.Wa1)
-        abs_Wa2 = np.absolute(self.Wa2)
+        if self.nHidden > 0:
+            abs_Wa1 = np.absolute(self.Wa1)
+            abs_Wa2 = np.absolute(self.Wa2)
 
-        weight_sum1 = np.sum(abs_Wa1, axis=1)
-        weight_sum2 = np.sum(abs_Wa2, axis=0)
-        weight_sum2 = weight_sum2[1:]
+            weight_sum1 = np.sum(abs_Wa1, axis=1)
+            weight_sum2 = np.sum(abs_Wa2, axis=0)
+            weight_sum2 = weight_sum2[1:]
 
-        total_sum = weight_sum1 + weight_sum2
+            total_sum = weight_sum1 + weight_sum2
 
-        print('total sum = ', total_sum)
+            print('total sum = ', total_sum)
 
-        prune_index = 1000
+            prune_index = 1000
 
-        for i in range(0, self.nHidden):
-            if total_sum[i] < self.pruning_thresh:
-                prune_index = i
-                self.nHidden -= 1
-                break
+            for i in range(0, self.nHidden):
+                if total_sum[i] < self.pruning_thresh:
+                    prune_index = i
+                    self.nHidden -= 1
+                    break
 
-        if prune_index < 999:
-            self.Wa1 = np.delete(self.Wa1, prune_index, 0)
-            self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
+            if prune_index < 999:
+                self.Wa1 = np.delete(self.Wa1, prune_index, 0)
+                self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
+
+            if self.nHidden == 0:
+                self.viable = 0
+            if self.nHidden == 2 and total_sum[0]>total_sum[1]*self.i_mul:
+                self.viable = 0
+            if self.nHidden == 2 and self.i_mul*total_sum[0]<total_sum[1]:
+                self.viable = 0
+
+
+
+
 
 
 
