@@ -12,7 +12,6 @@ np.random.seed(1)
 nInput = 2
 nHidden = 10
 nOut = 1
-
 eta1 = 0.01
 eps1 = 1
 pruning_rate = 0.05
@@ -21,7 +20,7 @@ motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 300
+Nsteps = 10
 resolution = 100
 safety_margin = 21
 
@@ -37,9 +36,14 @@ x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
 viable = np.ones((N_nets,1))
 
 nn = []
-for i in range(0, N_nets):
-    nn.append(neuronets.NN(nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh))
-    nn[i].initialize_weights()
+l = 0
+for i in range(0, N_elements):
+    for j in range(i+1, N_elements):
+        for m in range(0, N_elements):
+            if m != j and m != i:
+                nn.append(neuronets.NN(i, j, m, nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh))
+                nn[l].initialize_weights()
+                l += 1
 
 motors = [
     {
@@ -110,23 +114,17 @@ for k in range(0, Nsteps):
 
     z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
 
-    l = 0
-    for i in range(0, N_elements):
-        for j in range(i+1, N_elements):
-            for m in range(0, N_elements):
-                if m != j and m != i:
-                    axis_labels[l, :] = [i, j, m]
-                    x1 = [z[i], z[j]]
-                    d1 = z[m]
-                    xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
-                    J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
-                    costLog[k, l] = J
-                    if nn[l].nHidden > 0:
-                        nn[l].removeNode()
-                        if nn[l].nHidden == 0:
-                            viable[l] = 1
-                    neuronsPruned[k, l] = nn[l].nHidden
-                    l += 1
+    for l in range(0, N_nets):
+        x1 = [z[nn[l].input1_index], z[nn[l].input2_index]]
+        d1 = z[nn[l].output1_index]
+        xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
+        J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
+        costLog[k, l] = J
+        if nn[l].nHidden > 0:
+            nn[l].removeNode()
+            if nn[l].nHidden == 0:
+                viable[l] = 1
+        neuronsPruned[k, l] = nn[l].nHidden
 
 
 print(viable)
@@ -157,9 +155,9 @@ for l in range(0, N_nets):
     b = outPut[:, :, l]
     out = np.squeeze(b)
     plt.contourf(X, Y, np.transpose(out))
-    plt.xlabel(x_labels[int(axis_labels[l, 0])])
-    plt.ylabel(x_labels[int(axis_labels[l, 1])])
-    plt.title(x_labels[int(axis_labels[l, 2])])
+    plt.xlabel(x_labels[int(nn[l].input1_index)])
+    plt.ylabel(x_labels[int(nn[l].input2_index)])
+    plt.title(x_labels[int(nn[l].output1_index)])
     plt.colorbar()
 
 

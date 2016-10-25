@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 class NN:
 
-    def __init__(self, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.0001, pruning_thresh=1000):
+    def __init__(self, input1_index, input2_index, output1_index, nInput, nHidden, nOutput, eta=0.1, eps=0.1, pruning_rate=0.0001, pruning_thresh=1000):
         self.nInput = nInput
         self.nHidden = nHidden
         self.nOutput = nOutput
@@ -12,6 +12,9 @@ class NN:
         self.eps = eps
         self.pruning_rate = pruning_rate
         self.pruning_thresh = pruning_thresh
+        self.input1_index = input1_index
+        self.input2_index = input2_index
+        self.output1_index= output1_index
 
     def sig(z):
         h = np.tanh(z)
