@@ -81,7 +81,7 @@ class NN:
 
             total_sum = weight_sum1 + weight_sum2
 
-            print('total sum = ', total_sum)
+            #print('total sum = ', total_sum)
 
             prune_index = 1000
 

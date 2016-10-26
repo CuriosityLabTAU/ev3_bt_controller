@@ -21,7 +21,7 @@ motor_max = 30
 motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 461
+Nsteps = 300
 resolution = 100
 safety_margin = 21
 
