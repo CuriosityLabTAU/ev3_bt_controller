@@ -4,6 +4,9 @@ import matplotlib.pyplot as plt
 import time
 import math
 
+
+
+
 np.random.seed(1)
 nInput = 2
 nHidden = 10
@@ -41,6 +44,7 @@ for j in range(0, 5):
 
         xa1, s11, za1, s21, y1 = nn2.forProp(x1)
         d1 = x1[0] + x1[1]
+        #d1 = math.sin(x1[0]+ math.cos(x1[0]) + x1[1]*x1[1])
         J = nn2.backProp(xa1, s11, za1, s21, y1, d1)
         costLog[i, 1] = J
         nn2.removeNode()
@@ -65,11 +69,11 @@ for j in range(0, 5):
     plt.plot(t, neuronsPruned[:, 0])
     plt.xlabel('time')
     plt.ylabel('hidden neurons')
-    for i in range(0, resolution):
-        for j in range(0, resolution):
-            x1 = [i1[i], i2[j]]
+    for l in range(0, resolution):
+        for m in range(0, resolution):
+            x1 = [i1[l], i2[m]]
             xa, s1, za, s2, y1 = nn1.forProp(x1)
-            outPut[i, j, 0] = y1
+            outPut[l, m, 0] = y1
 
     plt.subplot(243)
     plt.title('random training set')
@@ -98,11 +102,11 @@ for j in range(0, 5):
     plt.plot(t, neuronsPruned[:, 1])
     plt.xlabel('time')
     plt.ylabel('hiddne neurons')
-    for i in range(0, resolution):
-        for j in range(0, resolution):
-            x1 = [i1[i], i2[j]]
+    for l in range(0, resolution):
+        for m in range(0, resolution):
+            x1 = [i1[l], i2[m]]
             xa, s1, za, s2, y1 = nn2.forProp(x1)
-            outPut[i, j, 1] = y1
+            outPut[l, m, 1] = y1
 
     plt.subplot(247)
     plt.title('linear training set')
@@ -123,4 +127,13 @@ for j in range(0, 5):
 
     plt.tight_layout()
 
+    plt.figure(j+5)
+    plt.title('linear training set')
+    plt.plot(t, costLog[:, 1])
+    plt.plot(t, neuronsPruned[:, 1]/100)
+    plt.xlabel('time(steps)')
+    plt.ylabel('Cost')
 plt.show()
+plt.savefig('books_read.png')
+print('viable = ', )
+

@@ -74,6 +74,8 @@ class NN:
         if self.nHidden > 0:
             abs_Wa1 = np.absolute(self.Wa1)
             abs_Wa2 = np.absolute(self.Wa2)
+            Nw = abs_Wa1.shape
+            #print('shape Wa1 = ' , Nw)
 
             weight_sum1 = np.sum(abs_Wa1, axis=1)
             weight_sum2 = np.sum(abs_Wa2, axis=0)
@@ -81,7 +83,13 @@ class NN:
 
             total_sum = weight_sum1 + weight_sum2
 
-            #print('total sum = ', total_sum)
+            input_weight_sum = np.sum(abs_Wa1, axis=0)
+
+            if input_weight_sum[1]>input_weight_sum[0]*self.i_mul or input_weight_sum[0]>input_weight_sum[1]*self.i_mul:
+                self.viable = 0
+                self.Wa1 = np.zeros(self.Wa1.shape)
+                self.Wa2 = np.zeros(self.Wa2.shape)
+                print('Wa1 = ', self.Wa1)
 
             prune_index = 1000
 
@@ -94,13 +102,6 @@ class NN:
             if prune_index < 999:
                 self.Wa1 = np.delete(self.Wa1, prune_index, 0)
                 self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
-
-            if self.nHidden == 0:
-                self.viable = 0
-            if self.nHidden == 2 and total_sum[0]>total_sum[1]*self.i_mul:
-                self.viable = 0
-            if self.nHidden == 2 and self.i_mul*total_sum[0]<total_sum[1]:
-                self.viable = 0
 
 
 
