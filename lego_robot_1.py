@@ -7,21 +7,20 @@ import matplotlib.pyplot as plt
 import time
 import math
 
-
 np.random.seed(1)
 nInput = 2
 nHidden = 10
 nOut = 1
-eta1 = 0.01
+eta1 = 0.1
 eps1 = 1
-pruning_rate = 0.002
+pruning_rate = 0.0001
 pruning_thresh = 0.1
 i_mul = 10
-motor_max = 30
-motor_min = -30
+motor_max = 25
+motor_min = -25
 sensor_max = 360
 sensor_min = 1
-Nsteps = 300
+Nsteps = 2000
 resolution = 100
 safety_margin = 21
 
@@ -104,7 +103,7 @@ for k in range(0, Nsteps):
     ]
     c.move_two_motors(motors)
 
-    time.sleep(0.6)
+    time.sleep(0.1)
     raw_angles = c.get_degrees_two_motors(motors)
     raw_p1_t1 = raw_angles[1]
     raw_p2_t1 = raw_angles[0]

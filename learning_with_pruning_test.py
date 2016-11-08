@@ -11,7 +11,7 @@ np.random.seed(1)
 nInput = 2
 nHidden = 10
 nOut = 1
-eta1 = 0.01 #learning rate
+eta1 = 0.1 #learning rate
 eps1 = 1
 pruning_rate = [0, 0.00001, 0.0001, 0.001, 0.01]
 pruning_thresh = 0.1
@@ -43,7 +43,8 @@ for j in range(0, 5):
         neuronsPruned[i, 0] = nn1.nHidden
 
         xa1, s11, za1, s21, y1 = nn2.forProp(x1)
-        d1 = x1[0] + x1[1]
+        #d1 = x1[0] + x1[1]
+        d1 = x1[0] * x1[1]
         #d1 = math.sin(x1[0]+ math.cos(x1[0]) + x1[1]*x1[1])
         J = nn2.backProp(xa1, s11, za1, s21, y1, d1)
         costLog[i, 1] = J

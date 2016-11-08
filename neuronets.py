@@ -87,9 +87,9 @@ class NN:
 
             if input_weight_sum[1]>input_weight_sum[0]*self.i_mul or input_weight_sum[0]>input_weight_sum[1]*self.i_mul:
                 self.viable = 0
-                self.Wa1 = np.zeros(self.Wa1.shape)
-                self.Wa2 = np.zeros(self.Wa2.shape)
-                print('Wa1 = ', self.Wa1)
+                #self.Wa1 = np.zeros(self.Wa1.shape)
+                #self.Wa2 = np.zeros(self.Wa2.shape)
+                #print('Wa1 = ', self.Wa1)
 
             prune_index = 1000
 
