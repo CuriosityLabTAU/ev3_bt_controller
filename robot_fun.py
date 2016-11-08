@@ -20,12 +20,12 @@ def calibrate_motor(c, motors, motor_num):
 
     a = 1
     while a == 1:
-        time.sleep(1.5)
+        time.sleep(0.2)
         motors[motor_num]['speed'] = calibration_speed
         angles = c.get_degrees_two_motors(motors)
         old_angle = angles[motor_num]
         c.move_two_motors(motors)
-        time.sleep(1.5)
+        time.sleep(0.2)
         angles = c.get_degrees_two_motors(motors)
         print('old angle = ', old_angle, ' new angle =', angles[motor_num])
         if angles[motor_num] == old_angle :
@@ -34,12 +34,12 @@ def calibrate_motor(c, motors, motor_num):
 
     a = 1
     while a == 1:
-        time.sleep(1.5)
+        time.sleep(0.)
         motors[motor_num]['speed'] = -calibration_speed
         angles = c.get_degrees_two_motors(motors)
         old_angle = angles[motor_num]
         c.move_two_motors(motors)
-        time.sleep(1.5)
+        time.sleep(0.2)
         angles = c.get_degrees_two_motors(motors)
         print('old angle = ', old_angle, ' new angle =', angles[motor_num])
         if angles[motor_num] == old_angle :

@@ -401,7 +401,8 @@ class EV3:
         msg_cnt = self._msg_cnt
         self._lock.release()
         cmd = b''.join([
-            struct.pack('<hh', len(ops) + 5, msg_cnt),
+            #struct.pack('<hh', len(ops) + 5, msg_cnt),
+            struct.pack('<HH', len(ops) + 5, msg_cnt),
             cmd_type,
             struct.pack('<h', local_mem * 1024 + global_mem),
             ops
@@ -518,7 +519,8 @@ class EV3:
         msg_cnt = self._msg_cnt
         self._lock.release()
         cmd = b''.join([
-            struct.pack('<hh', len(cmd) + 3, msg_cnt),
+            #struct.pack('<hh', len(cmd) + 3, msg_cnt),
+            struct.pack('<HH', len(cmd) + 3, msg_cnt),
             cmd_type,
             cmd
         ])

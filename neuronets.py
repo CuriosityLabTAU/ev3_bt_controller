@@ -85,7 +85,9 @@ class NN:
 
             input_weight_sum = np.sum(abs_Wa1, axis=0)
 
-            if input_weight_sum[1]>input_weight_sum[0]*self.i_mul or input_weight_sum[0]>input_weight_sum[1]*self.i_mul:
+            if input_weight_sum[2]>input_weight_sum[1]*self.i_mul:
+                self.viable = 0
+            if input_weight_sum[1]>input_weight_sum[2]*self.i_mul:
                 self.viable = 0
                 #self.Wa1 = np.zeros(self.Wa1.shape)
                 #self.Wa2 = np.zeros(self.Wa2.shape)
@@ -97,6 +99,8 @@ class NN:
                 if total_sum[i] < self.pruning_thresh:
                     prune_index = i
                     self.nHidden -= 1
+                    if self.nHidden == 0:
+                        self.viable = 0
                     break
 
             if prune_index < 999:

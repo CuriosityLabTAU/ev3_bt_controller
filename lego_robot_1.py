@@ -16,11 +16,11 @@ eps1 = 1
 pruning_rate = 0.0001
 pruning_thresh = 0.1
 i_mul = 10
-motor_max = 25
-motor_min = -25
+motor_max = 30
+motor_min = -30
 sensor_max = 360
 sensor_min = 1
-Nsteps = 2000
+Nsteps = 10
 resolution = 100
 safety_margin = 21
 
@@ -34,6 +34,8 @@ neuronsPruned = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
 viable = 1
+data_log = np.zeros((Nsteps, 6))
+viable_log = np.zeros((Nsteps, N_nets))
 
 nn = []
 l = 0
@@ -71,6 +73,7 @@ rf.move2middle(m2_min, m2_max, c, motors, 0)
 
 # learning loop
 
+#for k in range(0, Nsteps):
 for k in range(0, Nsteps):
     raw_a1 = np.random.randint(motor_min, high=motor_max+1)
     raw_a2 = np.random.randint(motor_min, high=motor_max+1)
@@ -114,6 +117,8 @@ for k in range(0, Nsteps):
 
     z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
 
+    data_log[k, :] = z
+
     for l in range(0, N_nets):
         x1 = [z[nn[l].input1_index], z[nn[l].input2_index]]
         d1 = z[nn[l].output1_index]
@@ -122,6 +127,10 @@ for k in range(0, Nsteps):
         costLog[k, l] = J
         nn[l].removeNode()
         neuronsPruned[k, l] = nn[l].nHidden
+        viable_log[k, l] = nn[l].viable
+
+np.save("data_log.npy", data_log)
+np.save("viable_log.npy", viable_log)
 
 for i in range(0, N_nets):
     print(nn[i].viable)
