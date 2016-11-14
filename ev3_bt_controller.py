@@ -4,12 +4,24 @@ import time
 
 
 class EV3_BT_Controller:
-    def __init__(self, motors):
+    def __init__(self):
         self.host = '00:16:53:4A:47:26'
         self.ev3 = ev3.EV3(protocol=ev3.BLUETOOTH, host=self.host)
-        self.motors = motors
         self.base_pos = (10,10)
+        self.motors = [
+            {
+                'port': 1,
+                'speed': 0,
+                'duration': 1
+            },
+            {
+                'port': 8,
+                'speed': 0,
+                'duration': 1
+            }
+        ]
         self.base_pos = self.get_degrees_two_motors(self.motors)
+
 
     def move_single_motor(self, motor):
         ops = b''.join([

@@ -9,24 +9,24 @@ def map_angle(angle):
     return angle_normal
 
 
-def calibrate_motor(c, motors, motor_num):
+def calibrate_motor(c, motor_num):
 
     print('starting calibration')
 
-    motors[0]['speed'] = 0
-    motors[1]['speed'] = 0
+    c.motors[0]['speed'] = 0
+    c.motors[1]['speed'] = 0
 
     calibration_speed = 10
 
     a = 1
     while a == 1:
         time.sleep(0.2)
-        motors[motor_num]['speed'] = calibration_speed
-        angles = c.get_degrees_two_motors(motors)
+        c.motors[motor_num]['speed'] = calibration_speed
+        angles = c.get_degrees_two_motors(c.motors)
         old_angle = angles[motor_num]
-        c.move_two_motors(motors)
+        c.move_two_motors(c.motors)
         time.sleep(0.2)
-        angles = c.get_degrees_two_motors(motors)
+        angles = c.get_degrees_two_motors(c.motors)
         print('old angle = ', old_angle, ' new angle =', angles[motor_num])
         if angles[motor_num] == old_angle :
             m1_max = old_angle
@@ -35,12 +35,12 @@ def calibrate_motor(c, motors, motor_num):
     a = 1
     while a == 1:
         time.sleep(0.)
-        motors[motor_num]['speed'] = -calibration_speed
-        angles = c.get_degrees_two_motors(motors)
+        c.motors[motor_num]['speed'] = -calibration_speed
+        angles = c.get_degrees_two_motors(c.motors)
         old_angle = angles[motor_num]
-        c.move_two_motors(motors)
+        c.move_two_motors(c.motors)
         time.sleep(0.2)
-        angles = c.get_degrees_two_motors(motors)
+        angles = c.get_degrees_two_motors(c.motors)
         print('old angle = ', old_angle, ' new angle =', angles[motor_num])
         if angles[motor_num] == old_angle :
             m1_min = old_angle
@@ -64,10 +64,10 @@ def map_from_normal(raw_d, min_d, max_d):
     return mapped_d
 
 
-def move2middle(m1_min, m1_max, c, motors, motor_num) :
-    motors[0]['speed'] = 0
-    motors[1]['speed'] = 0
-    angles = c.get_degrees_two_motors(motors)
+def move2middle(m1_min, m1_max, c, motor_num) :
+    c.motors[0]['speed'] = 0
+    c.motors[1]['speed'] = 0
+    angles = c.get_degrees_two_motors(c.motors)
     angle1 = angles[motor_num]
     middle = (m1_max + m1_min) / 2
     diff = 10
@@ -77,8 +77,8 @@ def move2middle(m1_min, m1_max, c, motors, motor_num) :
             v = -10
         else:
             v = 10
-        motors[motor_num]['speed'] = v
-        c.move_two_motors(motors)
+        c.motors[motor_num]['speed'] = v
+        c.move_two_motors(c.motors)
     print('motor is centered')
 
 

@@ -1,28 +1,30 @@
 
 import neuronets
-from ev3_bt_controller import *
-import robot_fun as rf
+#from ev3_bt_controller import *
+#import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 import math
+from robot import Robot
 
-np.random.seed(1)
+
+# neural network parameters
 nInput = 2
 nHidden = 10
 nOut = 1
+
+# learning parameters
 eta1 = 0.1
 eps1 = 1
 pruning_rate = 0.0001
 pruning_thresh = 0.1
 i_mul = 10
-motor_max = 30
-motor_min = -30
-sensor_max = 360
-sensor_min = 1
-Nsteps = 10
+
+# session parameters
+Nsteps = 100
 resolution = 100
-safety_margin = 21
+np.random.seed(1)
 
 N_motors = 2  # number of motors
 N_elements = N_motors * 3  # each motor has three elements - p(t), p(t+1), a(t)
@@ -33,7 +35,6 @@ costLog = np.zeros((Nsteps, N_nets))
 neuronsPruned = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
-viable = 1
 data_log = np.zeros((Nsteps, 6))
 viable_log = np.zeros((Nsteps, N_nets))
 
@@ -43,54 +44,31 @@ for i in range(0, N_elements):
     for j in range(i+1, N_elements):
         for m in range(0, N_elements):
             if m != j and m != i:
-                nn.append(neuronets.NN(i, j, m, nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh, viable))
+                nn.append(neuronets.NN(i, j, m, nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh, viable=1))
                 nn[l].initialize_weights()
                 l += 1
 
-motors = [
-    {
-        'port': 1,
-        'speed': 0,
-        'duration': 1
-    },
-    {
-        'port': 8,
-        'speed': 0,
-        'duration': 1
-    }
-]
-c = EV3_BT_Controller(motors)
 
-m1_min, m1_max = rf.calibrate_motor(c, motors, 1)
-rf.move2middle(m1_min, m1_max, c, motors, 1)
-m2_min, m2_max = rf.calibrate_motor(c, motors, 0)
-rf.move2middle(m2_min, m2_max, c, motors, 0)
-
-#m1_max = 193
-#m1_min = -14
-#m2_min = -10
-#m2_max = 130
+r1 = Robot()
 
 # learning loop
-
-#for k in range(0, Nsteps):
 for k in range(0, Nsteps):
-    raw_a1 = np.random.randint(motor_min, high=motor_max+1)
-    raw_a2 = np.random.randint(motor_min, high=motor_max+1)
-    a1_t0 = rf.map2normal(raw_a1, motor_min, motor_max)
-    a2_t0 = rf.map2normal(raw_a2, motor_min, motor_max)
-    raw_angles = c.get_degrees_two_motors(motors)
+    raw_a1 = np.random.randint(c.motor_min, high=c.motor_max+1)
+    raw_a2 = np.random.randint(c.motor_min, high=c.motor_max+1)
+    a1_t0 = rf.map2normal(raw_a1, c.motor_min, c.motor_max)
+    a2_t0 = rf.map2normal(raw_a2, c.motor_min, c.motor_max)
+    raw_angles = c.get_degrees_two_motors(c.motors)
     raw_p1_t0 = raw_angles[1]
     raw_p2_t0 = raw_angles[0]
     p1_t0 = rf.map2normal(raw_p1_t0, m1_min, m1_max)
     p2_t0 = rf.map2normal(raw_p2_t0, m2_min, m2_max)
-    if raw_angles[1]-m1_min < safety_margin and raw_a1 < 0:
+    if raw_angles[1]-m1_min < c.safety_margin and raw_a1 < 0:
         raw_a1 = 0
-    if m1_max - raw_angles[1]< safety_margin and raw_a1 > 0:
+    if m1_max - raw_angles[1]< c.safety_margin and raw_a1 > 0:
         raw_a1 = 0
-    if raw_angles[0]-m2_min < safety_margin and raw_a2 < 0:
+    if raw_angles[0]-m2_min < c.safety_margin and raw_a2 < 0:
         raw_a2 = 0
-    if m2_max - raw_angles[0]< safety_margin and raw_a2 > 0:
+    if m2_max - raw_angles[0]< c.safety_margin and raw_a2 > 0:
         raw_a2 = 0
     motors = [
         {
