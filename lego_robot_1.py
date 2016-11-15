@@ -48,28 +48,18 @@ for i in range(0, N_elements):
                 nn[l].initialize_weights()
                 l += 1
 
-
 r1 = Robot()
 
 # learning loop
 for k in range(0, Nsteps):
     a1_t0 = (np.random.random() - 0.5) * 2
     a2_t0 = (np.random.random() - 0.5) * 2
-
-    [p1_t0, p2_t0] = r1.read_motor_sensors
+    [p1_t0, p2_t0] = r1.read_motor_sensors()
     r1.command_motors(a1_t0, a2_t0)
-
     time.sleep(0.1)
-    raw_angles = r1.c.get_degrees_two_motors(motors)
-    raw_p1_t1 = raw_angles[1]
-    raw_p2_t1 = raw_angles[0]
-    p1_t1 = rf.map2normal(raw_p1_t1, m1_min, m1_max)
-    p2_t1 = rf.map2normal(raw_p2_t1, m2_min, m2_max)
-
+    [p1_t1, p2_t1] = r1.read_motor_sensors
     print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
-
     z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
-
     data_log[k, :] = z
 
     for l in range(0, N_nets):

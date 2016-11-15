@@ -21,13 +21,13 @@ class Robot:
         raw_p2_t0 = current_Angles[0]
         p1_t0 = rf.map2normal(raw_p1_t0, self.m1_min, self.m1_max)
         p2_t0 = rf.map2normal(raw_p2_t0, self.m2_min, self.m2_max)
-        if current_Angles[1]-self.m1_min < self.c.safety_margin and a1 < 0:
+        if current_Angles[1]-self.m1_min < self.safety_margin and a1 < 0:
             a1 = 0
-        if self.m1_max - current_Angles[1] < self.c.safety_margin and a1 > 0:
+        if self.m1_max - current_Angles[1] < self.safety_margin and a1 > 0:
             a1 = 0
-        if current_Angles[0]-self.m2_min < self.c.safety_margin and a2 < 0:
+        if current_Angles[0]-self.m2_min < self.safety_margin and a2 < 0:
             a2 = 0
-        if self.m2_max - current_Angles[0] < self.c.safety_margin and a2 > 0:
+        if self.m2_max - current_Angles[0] < self.safety_margin and a2 > 0:
             a2 = 0
         A1 = rf.map_from_normal(a1, self.motor_min, self.motor_max)
         A2 = rf.map_from_normal(a2, self.motor_min, self.motor_max)
@@ -46,7 +46,8 @@ class Robot:
         self.c.move_two_motors(motors)
 
     def read_motor_sensors(self):
-        Angles = self.c.get_degrees_two_motors(self.c.motors)
+        motors = self.c.motors
+        Angles = self.c.get_degrees_two_motors(motors)
         p1_t0 = rf.map2normal(Angles[0], self.m1_min, self.m1_max)
         p2_t0 = rf.map2normal(Angles[1], self.m2_min, self.m2_max)
         angles = [p1_t0, p2_t0]
