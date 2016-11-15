@@ -53,39 +53,14 @@ r1 = Robot()
 
 # learning loop
 for k in range(0, Nsteps):
-    raw_a1 = np.random.randint(c.motor_min, high=c.motor_max+1)
-    raw_a2 = np.random.randint(c.motor_min, high=c.motor_max+1)
-    a1_t0 = rf.map2normal(raw_a1, c.motor_min, c.motor_max)
-    a2_t0 = rf.map2normal(raw_a2, c.motor_min, c.motor_max)
-    raw_angles = c.get_degrees_two_motors(c.motors)
-    raw_p1_t0 = raw_angles[1]
-    raw_p2_t0 = raw_angles[0]
-    p1_t0 = rf.map2normal(raw_p1_t0, m1_min, m1_max)
-    p2_t0 = rf.map2normal(raw_p2_t0, m2_min, m2_max)
-    if raw_angles[1]-m1_min < c.safety_margin and raw_a1 < 0:
-        raw_a1 = 0
-    if m1_max - raw_angles[1]< c.safety_margin and raw_a1 > 0:
-        raw_a1 = 0
-    if raw_angles[0]-m2_min < c.safety_margin and raw_a2 < 0:
-        raw_a2 = 0
-    if m2_max - raw_angles[0]< c.safety_margin and raw_a2 > 0:
-        raw_a2 = 0
-    motors = [
-        {
-            'port': 1,
-            'speed': raw_a2,
-            'duration': 0.1
-        },
-        {
-            'port': 8,
-            'speed': raw_a1,
-            'duration': 0.1
-        }
-    ]
-    c.move_two_motors(motors)
+    a1_t0 = (np.random.random() - 0.5) * 2
+    a2_t0 = (np.random.random() - 0.5) * 2
+
+    [p1_t0, p2_t0] = r1.read_motor_sensors
+    r1.command_motors(a1_t0, a2_t0)
 
     time.sleep(0.1)
-    raw_angles = c.get_degrees_two_motors(motors)
+    raw_angles = r1.c.get_degrees_two_motors(motors)
     raw_p1_t1 = raw_angles[1]
     raw_p2_t1 = raw_angles[0]
     p1_t1 = rf.map2normal(raw_p1_t1, m1_min, m1_max)
