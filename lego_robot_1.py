@@ -1,13 +1,11 @@
-
 import neuronets
 #from ev3_bt_controller import *
 #import robot_fun as rf
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+import time 
 import math
 from robot import Robot
-
 
 # neural network parameters
 nInput = 2
@@ -22,7 +20,7 @@ pruning_thresh = 0.1
 i_mul = 10
 
 # session parameters
-Nsteps = 100
+Nsteps = 1000
 resolution = 100
 np.random.seed(1)
 
@@ -57,7 +55,7 @@ for k in range(0, Nsteps):
     [p1_t0, p2_t0] = r1.read_motor_sensors()
     r1.command_motors(a1_t0, a2_t0)
     time.sleep(0.1)
-    [p1_t1, p2_t1] = r1.read_motor_sensors
+    [p1_t1, p2_t1] = r1.read_motor_sensors()
     print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
     z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
     data_log[k, :] = z
