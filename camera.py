@@ -15,10 +15,10 @@ class Camera:
 
             # Our operations on the frame come here
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-            res = cv2.resize(gray,None,fx=self.scale, fy=self.scale, interpolation = cv2.INTER_CUBIC)
-            print(res)
+            self.res = cv2.resize(gray,None,fx=self.scale, fy=self.scale, interpolation = cv2.INTER_CUBIC)
+            #print(self.res)
             # Display the resulting frame
-            cv2.imshow('frame',res)
+            cv2.imshow('frame',self.res)
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
@@ -26,5 +26,7 @@ class Camera:
         # When everything done, release the capture
         self.cap.release()
         cv2.destroyAllWindows()
+
+
 
 

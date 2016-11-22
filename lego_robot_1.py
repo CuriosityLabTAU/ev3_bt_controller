@@ -25,14 +25,15 @@ resolution = 100
 np.random.seed(1)
 
 N_motors = 2  # number of motors
-N_elements = N_motors * 3  # each motor has three elements - p(t), p(t+1), a(t)
+N_cameras = 1
+N_elements = N_motors * 3 + N_cameras * 2  # each motor has three elements - p(t), p(t+1), a(t)
 N = N_elements
 N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))  # calculates the number of networks
 elements = np.zeros((N_elements, 1))
 costLog = np.zeros((Nsteps, N_nets))
 neuronsPruned = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
-x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0']
+x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0', 'c1_t0', 'c1_t1']
 data_log = np.zeros((Nsteps, 6))
 viable_log = np.zeros((Nsteps, N_nets))
 
@@ -52,12 +53,18 @@ r1 = Robot()
 for k in range(0, Nsteps):
     a1_t0 = (np.random.random() - 0.5) * 2
     a2_t0 = (np.random.random() - 0.5) * 2
+
     [p1_t0, p2_t0] = r1.read_motor_sensors()
+    c1_t0 = r1.get_image()
+
     r1.command_motors(a1_t0, a2_t0)
     time.sleep(0.1)
+
     [p1_t1, p2_t1] = r1.read_motor_sensors()
+    c1_t1 = r1.get_image()
+
     print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
-    z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0]
+    z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0, c1_t0, c1_t1]
     data_log[k, :] = z
 
     for l in range(0, N_nets):

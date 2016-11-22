@@ -108,6 +108,19 @@ class NN:
                 self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
 
 
+def learn(nn, z, inputs_type):
+    #inputs_type = 1 --> input1=not image, imput2=not image
+    #inputs_type = 2 --> input1=image, imput2=not image
+    #inputs_type = 3 --> input1=not image, imput2=image
+    #inputs_type = 4 --> input1=image, imput2=image
+    x1 = [z[nn.input1_index], z[nn.input2_index]]
+    d1 = z[nn.output1_index]
+    xa1, s11, za1, s21, y1 = nn.forProp(x1)
+    J = nn.backProp(xa1, s11, za1, s21, y1, d1)
+    nn.removeNode()
+    return J, nn.nHidden, nn.viable
+
+
 
 
 

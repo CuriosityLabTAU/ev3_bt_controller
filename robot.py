@@ -11,7 +11,7 @@ class Robot:
         self.motor_max = 30
         self.safety_margin = 21
         self.c = EV3_BT_Controller()
-        self.img = Camera(0.1)
+        self.img = Camera(0.05)
         self.img.show_video()
         self.m1_min, self.m1_max = rf.calibrate_motor(self.c, 1)
         rf.move2middle(self.m1_min, self.m1_max, self.c, 1)
@@ -55,4 +55,8 @@ class Robot:
         p2_t0 = rf.map2normal(Angles[1], self.m2_min, self.m2_max)
         angles = [p1_t0, p2_t0]
         return angles
+
+    def get_image(self):
+        image = np.interp(self.img.res,[0,256],[-1,1])
+        return image
 
