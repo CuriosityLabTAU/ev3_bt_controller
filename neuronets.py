@@ -108,17 +108,47 @@ class NN:
                 self.Wa2 = np.delete(self.Wa2, prune_index + 1, 1)
 
 
-def learn(nn, z, inputs_type):
-    #inputs_type = 1 --> input1=not image, imput2=not image
-    #inputs_type = 2 --> input1=image, imput2=not image
-    #inputs_type = 3 --> input1=not image, imput2=image
-    #inputs_type = 4 --> input1=image, imput2=image
-    x1 = [z[nn.input1_index], z[nn.input2_index]]
-    d1 = z[nn.output1_index]
-    xa1, s11, za1, s21, y1 = nn.forProp(x1)
-    J = nn.backProp(xa1, s11, za1, s21, y1, d1)
-    nn.removeNode()
-    return J, nn.nHidden, nn.viable
+    def learn(self, z):
+
+        x11 = np.asarray(z[self.input1_index])
+        x12 = np.asarray(z[self.input2_index])
+        d11 = np.asarray(z[self.output1_index])
+        x11 = x11.flatten()
+        x12 = x12.flatten()
+        d11 = d11.flatten()
+        size_x11 = x11.shape[0]
+        size_x12 = x12.shape[0]
+        size_d11 = d11.shape[0]
+        N_batch = np.amax([size_x11, size_x12, size_d11])
+        if size_x11 == 1:
+            x11 = np.concatenate(np.ones((N_batch, 1)) * x11[0], axis=0)
+        if size_x12 == 1:
+            x12 = np.concatenate(np.ones((N_batch, 1)) * x12[0], axis=0)
+        if size_d11 == 1:
+            #d11 = np.ones((N_batch, 1)) * d11[0]
+            d11 = np.concatenate(np.ones((N_batch, 1)) * d11[0], axis=0)
+        eta_batch = self.eta/N_batch
+        D1 = 0
+        D2 = 0
+        for i in range(0, N_batch):
+            x1 = [x11[i], x12[i]]
+            d1 = d11[i]
+            xa, s1, za, s2, y1 = self.forProp(x1)
+            e2 = d1-y1
+            sigtag2 = NN.sigtag(s2)
+            d2 = np.multiply(e2, sigtag2)
+            D2 += np.outer(-d2, za.T)
+            sigtag1 = NN.sigtag(s1)
+            p = self.Wa2.shape[1]-1
+            W2 = self.Wa2[:, 1:p+1]
+            e1 = np.dot(W2.T, d2)
+            d1 = e1*sigtag1
+            D1 += np.outer(-d1, xa.T)
+        self.Wa2 -= eta_batch * D2 + self.pruning_rate * np.sign(self.Wa2)
+        self.Wa1 -= eta_batch * D1 + self.pruning_rate * np.sign(self.Wa1)
+        J = self.cost(d1, y1)
+        self.removeNode()
+        return J
 
 
 

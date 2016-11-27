@@ -20,7 +20,7 @@ pruning_thresh = 0.1
 i_mul = 10
 
 # session parameters
-Nsteps = 1000
+Nsteps = 100
 resolution = 100
 np.random.seed(1)
 
@@ -29,6 +29,7 @@ N_cameras = 1
 N_elements = N_motors * 3 + N_cameras * 2  # each motor has three elements - p(t), p(t+1), a(t)
 N = N_elements
 N_nets = int((math.factorial(N) * (N - 2)) / (math.factorial(N - 2) * 2))  # calculates the number of networks
+print('number of nets = ', N_nets)
 elements = np.zeros((N_elements, 1))
 costLog = np.zeros((Nsteps, N_nets))
 neuronsPruned = np.zeros((Nsteps, N_nets))
@@ -48,9 +49,9 @@ for i in range(0, N_elements):
                 l += 1
 
 r1 = Robot()
-
 # learning loop
 for k in range(0, Nsteps):
+    print('k = ', k)
     a1_t0 = (np.random.random() - 0.5) * 2
     a2_t0 = (np.random.random() - 0.5) * 2
 
@@ -65,15 +66,11 @@ for k in range(0, Nsteps):
 
     print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
     z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0, c1_t0, c1_t1]
-    data_log[k, :] = z
+    #data_log[k, :] = z
 
     for l in range(0, N_nets):
-        x1 = [z[nn[l].input1_index], z[nn[l].input2_index]]
-        d1 = z[nn[l].output1_index]
-        xa1, s11, za1, s21, y1 = nn[l].forProp(x1)
-        J = nn[l].backProp(xa1, s11, za1, s21, y1, d1)
+        J = nn[l].learn(z)
         costLog[k, l] = J
-        nn[l].removeNode()
         neuronsPruned[k, l] = nn[l].nHidden
         viable_log[k, l] = nn[l].viable
 

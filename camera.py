@@ -6,6 +6,7 @@ class Camera:
     def __init__(self, scale=1):
         self.cap = cv2.VideoCapture(0)
         self.scale = scale
+        self.res = None
 
     def show_video(self):
 
@@ -26,6 +27,11 @@ class Camera:
         # When everything done, release the capture
         self.cap.release()
         cv2.destroyAllWindows()
+
+    def save_image(self):
+        ret, frame = self.cap.read()
+        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        self.res = cv2.resize(gray,None,fx=self.scale, fy=self.scale, interpolation = cv2.INTER_CUBIC)
 
 
 
