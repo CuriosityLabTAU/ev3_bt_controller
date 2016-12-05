@@ -20,10 +20,9 @@ pruning_thresh = 0.1
 i_mul = 10
 
 # session parameters
-Nsteps = 30000
+Nsteps = 10000
 resolution = 100
 np.random.seed(1)
-run_mode = 2 # 1- robot; 2-simulation
 
 N_motors = 2  # number of motors
 N_cameras = 1
@@ -37,7 +36,13 @@ neuronsPruned = np.zeros((Nsteps, N_nets))
 axis_labels = np.zeros((N_nets, 3))
 x_labels = ['p1_t0', 'p1_t1', 'a1_t0', 'p2_t0', 'p2_t1', 'a2_t0', 'c1_t0', 'c1_t1']
 data_log = np.zeros((Nsteps, 6))
+image0_log = np.zeros((Nsteps, 2, 3, ))
+image1_log = np.zeros((Nsteps, 2, 3, ))
+viable_log = np.zeros((Nsteps, N_nets))
 
+data_log = np.load("data_log.npy")
+image0_log = np.load("image0_log.npy")
+image1_log = np.load("image1_log.npy")
 nn = []
 l = 0
 for i in range(0, N_elements):
@@ -47,71 +52,34 @@ for i in range(0, N_elements):
                 nn.append(neuronets.NN(i, j, m, nInput, nHidden, nOut, eta1, eps1, pruning_rate, pruning_thresh, viable=1))
                 nn[l].initialize_weights()
                 l += 1
-viable_log = np.zeros((Nsteps, N_nets))
-if run_mode==1:
-    r1 = Robot()
-    image0_log = np.zeros((Nsteps, 480 * r1.resolution, 640 * r1.resolution))
-    image1_log = np.zeros((Nsteps, 480 * r1.resolution, 640 * r1.resolution))
 
-if run_mode==2:
-    data_log = np.load("data_log.npy")
-    image0_log = np.load("image0_log.npy")
-    image1_log = np.load("image1_log.npy")
-    data_size = image1_log.shape[0]
-
+#r1 = Robot()
 # learning loop
 for k in range(0, Nsteps):
     print('k = ', k)
-    if run_mode == 1:
-        a1_t0 = (np.random.random() - 0.5) * 2
-        a2_t0 = (np.random.random() - 0.5) * 2
-        dont_move = np.random.random()
-        if dont_move < 0.15: #this make the camera motor not move at 15% of the time steps
-            a2_t0 = 0
+    input_index = np.random.randint(0, high=100)
+    c1_t0 = image0_log[input_index, :, :]
+    c1_t1 = image1_log[input_index, :, :]
+    p1_t0 = data_log[input_index, 0]
+    p1_t1 = data_log[input_index, 1]
+    a1_t0 = data_log[input_index, 2]
+    p2_t0 = data_log[input_index, 3]
+    p2_t1 = data_log[input_index, 4]
+    a2_t0 = data_log[input_index, 5]
 
-        [p1_t0, p2_t0] = r1.read_motor_sensors()
-        c1_t0 = r1.get_image()
+    z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0, c1_t0, c1_t1]
 
-        r1.command_motors(a1_t0, a2_t0)
-        time.sleep(0.1)
 
-        [p1_t1, p2_t1] = r1.read_motor_sensors()
-        c1_t1 = r1.get_image()
-
-        print('step = ', k, ' theta0 = ', p1_t0, ' a = ', a1_t0, ' theta1 = ', p1_t1)
-        z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0, c1_t0, c1_t1]
-        data_log[k, :] = z[0:6]
-        image0_log[k, :, :] = c1_t0
-        image1_log[k, :, :] = c1_t1
-
-    if run_mode == 2:
-        input_index = np.random.randint(1, high=data_size)
-        c1_t0 = image0_log[input_index, :, :]
-        c1_t1 = image1_log[input_index, :, :]
-        #c1_t0 = image0_log[input_index, 80, 60]
-        #c1_t1 = image1_log[input_index, 80, 60]
-        p1_t0 = data_log[input_index, 0]
-        p1_t1 = data_log[input_index, 1]
-        a1_t0 = data_log[input_index, 2]
-        p2_t0 = data_log[input_index, 3]
-        p2_t1 = data_log[input_index, 4]
-        a2_t0 = data_log[input_index, 5]
-
-        z = [p1_t0, p1_t1, a1_t0, p2_t0, p2_t1, a2_t0, c1_t0, c1_t1]
-
-        print('z = ', z)
     for l in range(0, N_nets):
         J = nn[l].learn(z)
         costLog[k, l] = J
         neuronsPruned[k, l] = nn[l].nHidden
         viable_log[k, l] = nn[l].viable
 
-if run_mode == 1:
-    np.save("data_log.npy", data_log)
-    np.save("image0_log.npy", image0_log)
-    np.save("image1_log.npy", image1_log)
-    np.save("viable_log.npy", viable_log)
-
+np.save("data_log.npy", data_log)
+np.save("image0_log.npy", data_log)
+np.save("image1_log.npy", data_log)
+np.save("viable_log.npy", viable_log)
 
 for i in range(0, N_nets):
     print(nn[i].viable)

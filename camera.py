@@ -3,7 +3,7 @@ import cv2
 
 class Camera:
 
-    def __init__(self, scale=1):
+    def __init__(self, scale):
         self.cap = cv2.VideoCapture(0)
         self.scale = scale
         self.res = None
@@ -32,7 +32,6 @@ class Camera:
         ret, frame = self.cap.read()
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         self.res = cv2.resize(gray,None,fx=self.scale, fy=self.scale, interpolation = cv2.INTER_CUBIC)
-
 
 
 

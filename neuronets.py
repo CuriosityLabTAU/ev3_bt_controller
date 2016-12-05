@@ -132,9 +132,9 @@ class NN:
         D2 = 0
         for i in range(0, N_batch):
             x1 = [x11[i], x12[i]]
-            d1 = d11[i]
+            d12 = d11[i]
             xa, s1, za, s2, y1 = self.forProp(x1)
-            e2 = d1-y1
+            e2 = d12-y1
             sigtag2 = NN.sigtag(s2)
             d2 = np.multiply(e2, sigtag2)
             D2 += np.outer(-d2, za.T)
@@ -146,7 +146,7 @@ class NN:
             D1 += np.outer(-d1, xa.T)
         self.Wa2 -= eta_batch * D2 + self.pruning_rate * np.sign(self.Wa2)
         self.Wa1 -= eta_batch * D1 + self.pruning_rate * np.sign(self.Wa1)
-        J = self.cost(d1, y1)
+        J = self.cost(d12, y1)
         self.removeNode()
         return J
 
